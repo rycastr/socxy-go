@@ -70,12 +70,12 @@ func pipe(left, right net.Conn, fb []byte) {
 	defer left.Close()
 	defer right.Close()
 
-	right.Write(fb)
-
 	go func() {
 		io.Copy(left, right)
 		left.SetReadDeadline(time.Now().Add(5 * time.Second))
 	}()
+
+	right.Write(fb)
 
 	io.Copy(right, left)
 	right.SetReadDeadline(time.Now().Add(5 * time.Second))
