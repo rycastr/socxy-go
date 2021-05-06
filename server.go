@@ -42,7 +42,7 @@ func listen(port int) {
 			return &gossh.ServerConfig{
 				BannerCallback: func(conn gossh.ConnMetadata) string {
 					return fmt.Sprintf("Olá %s, você está conectado aos servidores SOCXY Cloud (%s). Seu IP: %s",
-						conn.User(), conn.ServerVersion(), conn.RemoteAddr())
+						conn.User(), conn.ServerVersion(), strings.Split(conn.RemoteAddr().String(), ":")[0])
 				},
 			}
 		},
