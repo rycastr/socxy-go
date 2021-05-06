@@ -12,7 +12,8 @@ import (
 )
 
 type Config struct {
-	Ports []int `yaml:"ports"`
+	Ports []int       `yaml:"ports"`
+	UDPGW UDPGWConfig `yaml:"udpgw"`
 }
 
 func main() {
@@ -37,6 +38,8 @@ func main() {
 		go listen(port)
 		log.Printf("Listening server on port: %v", port)
 	}
+
+	go udpgw_listen(config.UDPGW)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)

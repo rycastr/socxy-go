@@ -1,1 +1,9 @@
-ports: [80, 8080, 443, 22]
+ports:
+  - 80
+  - 443
+  - 8080
+udpgw:
+  host: 127.0.0.1
+  port: 7300
+  max-clients: 1000
+  max-connections-for-client: 10
