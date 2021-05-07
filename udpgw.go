@@ -15,7 +15,7 @@ type UDPGWConfig struct {
 }
 
 func udpgw_listen(config UDPGWConfig) {
-	udpgwCmd := exec.Command("badvpn-udpgw", "--listen-addr",
+	udpgwCmd := exec.Command("./tools/badvpn-udpgw", "--listen-addr",
 		net.JoinHostPort(config.Host, strconv.FormatInt(int64(config.Port), 10)),
 		"--max-clients", strconv.Itoa(config.MaxClients),
 		"--max-connections-for-client", strconv.Itoa(config.MaxConnectionsForClient))
