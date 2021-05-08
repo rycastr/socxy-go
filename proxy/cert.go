@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-type certificate struct {
+type Certificate struct {
 	cert       []byte
 	privateKey []byte
 }
 
-func NewCert(rsaBits int, duration int, host string) *certificate {
+func NewCert(rsaBits int, duration int, sni string) *Certificate {
 	pv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
 		log.Fatalf("Failed to generate private key: %v", err)
@@ -49,7 +49,7 @@ func NewCert(rsaBits int, duration int, host string) *certificate {
 		BasicConstraintsValid: true,
 	}
 
-	hosts := strings.Split(host, ",")
+	hosts := strings.Split(sni, ",")
 	for _, h := range hosts {
 		if ip := net.ParseIP(h); ip != nil {
 			template.IPAddresses = append(template.IPAddresses, ip)
@@ -68,16 +68,16 @@ func NewCert(rsaBits int, duration int, host string) *certificate {
 		log.Fatalf("Unable to marshal private key: %v", err)
 	}
 
-	return &certificate{
+	return &Certificate{
 		cert:       pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes}),
 		privateKey: pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: pvBytes}),
 	}
 }
 
-func (c *certificate) Certificate() []byte {
+func (c *Certificate) Certificate() []byte {
 	return c.cert
 }
 
-func (c *certificate) PrivateKey() []byte {
+func (c *Certificate) PrivateKey() []byte {
 	return c.privateKey
 }

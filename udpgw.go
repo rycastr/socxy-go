@@ -7,24 +7,17 @@ import (
 	"strconv"
 )
 
-type UDPGWConfig struct {
-	Host                    string `yaml:"host"`
-	Port                    int    `yaml:"port"`
-	MaxClients              int    `yaml:"max-clients"`
-	MaxConnectionsForClient int    `yaml:"max-connections-for-client"`
-}
-
-func udpgw_listen(config UDPGWConfig) {
+func udpgw_listen(host string, port, maxClients, maxConnectionsForClient int64) {
 	udpgwCmd := exec.Command("./tools/badvpn-udpgw", "--listen-addr",
-		net.JoinHostPort(config.Host, strconv.FormatInt(int64(config.Port), 10)),
-		"--max-clients", strconv.Itoa(config.MaxClients),
-		"--max-connections-for-client", strconv.Itoa(config.MaxConnectionsForClient))
+		net.JoinHostPort(host, strconv.FormatInt(port, 10)),
+		"--max-clients", strconv.FormatInt(maxClients, 10),
+		"--max-connections-for-client", strconv.FormatInt(maxConnectionsForClient, 10))
 
 	err := udpgwCmd.Start()
 	if err != nil {
 		log.Panic(err)
 	}
 
-	log.Printf("UDPGW enabled on port: %v", config.Port)
+	log.Printf("UDPGW enabled on port: %v", port)
 	udpgwCmd.Wait()
 }

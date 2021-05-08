@@ -8,12 +8,27 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/socxy/socxy-server/proxy"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Ports []int       `yaml:"ports"`
-	UDPGW UDPGWConfig `yaml:"udpgw"`
+	Server struct {
+		Ports []int `yaml:"ports"`
+
+		Certificate struct {
+			RSABits  int    `yaml:"rsa_bits"`
+			Duration int    `yaml:"duration"`
+			SNI      string `yaml:"sni"`
+		} `yaml:"certificate"`
+	} `yaml:"server"`
+
+	UDPGW struct {
+		Host                    string `yaml:"host"`
+		Port                    int    `yaml:"port"`
+		MaxClients              int    `yaml:"max_clients"`
+		MaxConnectionsForClient int    `yaml:"max_connections_for_client"`
+	} `yaml:"udpgw"`
 }
 
 func main() {
@@ -34,12 +49,16 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 
-	for _, port := range config.Ports {
-		go listen(port)
+	cert := proxy.NewCert(config.Server.Certificate.RSABits,
+		config.Server.Certificate.Duration, config.Server.Certificate.SNI)
+
+	for _, port := range config.Server.Ports {
+		go listen(port, cert)
 		log.Printf("Listening server on port: %v", port)
 	}
 
-	go udpgw_listen(config.UDPGW)
+	go udpgw_listen(config.UDPGW.Host, int64(config.UDPGW.Port),
+		int64(config.UDPGW.MaxClients), int64(config.UDPGW.MaxConnectionsForClient))
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)

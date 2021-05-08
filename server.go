@@ -16,8 +16,9 @@ func connStatus(ctx ssh.Context) {
 	log.Printf("Connection %s closed by: %s", ctx.RemoteAddr().String(), ctx.User())
 }
 
-func listen(port int) {
+func listen(port int, certificate *proxy.Certificate) {
 	addr := &net.TCPAddr{Port: port}
+
 	server := &ssh.Server{
 		PasswordHandler: func(ctx ssh.Context, password string) bool {
 			log.Printf("New connection %s on port %s, secure(TLS/SSL): %v, client: %s, authenticated by: %s\n",
@@ -33,7 +34,15 @@ func listen(port int) {
 			return true
 		},
 		ConnCallback: func(ctx ssh.Context, conn net.Conn) net.Conn {
-			c := proxy.Handle(conn)
+			c, err := proxy.Handle(conn, certificate)
+			if err != nil {
+				log.Printf("Connection failed: %s, on port %s\n",
+					conn.RemoteAddr().String(), strings.Split(conn.LocalAddr().String(), ":")[1])
+
+				conn.Close()
+				return conn
+			}
+
 			ctx.SetValue("tls", c.IsTLS())
 			return c
 		},

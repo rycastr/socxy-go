@@ -1,9 +1,14 @@
-ports:
-  - 80
-  - 443
-  - 8080
+server:
+  ports:
+    - 80
+    - 443
+    - 8080
+  certificate:
+    rsa_bits: 2048
+    duration: 365
+    sni: example.com
 udpgw:
   host: 127.0.0.1
   port: 7300
-  max-clients: 1000
-  max-connections-for-client: 10
+  max_clients: 1000
+  max_connections_for_client: 10

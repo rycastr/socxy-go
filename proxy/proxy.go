@@ -9,12 +9,11 @@ import (
 	"time"
 )
 
-func Handle(newConn net.Conn) *Conn {
-	cert := NewCert(2048, 365, "socxy.cloud")
+func Handle(newConn net.Conn, cert *Certificate) (*Conn, error) {
 	return handle(newConn, cert)
 }
 
-func handle(nConn net.Conn, cert *certificate) *Conn {
+func handle(nConn net.Conn, cert *Certificate) (*Conn, error) {
 	left, right := net.Pipe()
 
 	src := &Conn{
@@ -23,9 +22,17 @@ func handle(nConn net.Conn, cert *certificate) *Conn {
 		remoteAddr: nConn.RemoteAddr(),
 	}
 
-	var firstBuf []byte
+	var (
+		firstBuf []byte
+		err      error
+	)
 
-	firstBuf, src.isTLS = handleConn(nConn)
+	firstBuf, src.isTLS, err = handleConn(nConn)
+	if err != nil {
+		nConn.Close()
+		return nil, err
+	}
+
 	if src.isTLS {
 		cert, err := tls.X509KeyPair(cert.Certificate(), cert.PrivateKey())
 		if err != nil {
@@ -35,22 +42,25 @@ func handle(nConn net.Conn, cert *certificate) *Conn {
 		src.conn = tls.Server(right, config)
 	}
 	go pipe(nConn, left, firstBuf)
-	return src
+	return src, nil
 }
 
-func handleConn(rw io.ReadWriter) ([]byte, bool) {
-	b, _ := extractBuffer(rw)
+func handleConn(rw io.ReadWriter) ([]byte, bool, error) {
+	b, err := extractBuffer(rw)
+	if err != nil {
+		return nil, false, err
+	}
 
 	switch {
 	case bytes.Equal(b[0:4], []byte("SSH-")):
-		return b, false
+		return b, false, nil
 	case bytes.Equal(b[0:3], []byte{22, 3, 1}):
-		return b, true
+		return b, true, nil
 	default:
 		req := bytes.Split(b, []byte("\r\n\r\n"))
 		if bytes.Equal(req[1][0:4], []byte("SSH-")) {
 			rw.Write([]byte("HTTP/1.1 200\r\n\r\n"))
-			return req[1], false
+			return req[1], false, nil
 		}
 		rw.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 		return handleConn(rw)
