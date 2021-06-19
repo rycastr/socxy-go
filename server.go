@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gliderlabs/ssh"
-	"github.com/socxy/socxy-server/proxy"
+	"github.com/raydcast/socxy-go/proxy"
 	gossh "golang.org/x/crypto/ssh"
 )
 

@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/socxy/socxy-server/proxy"
+	"github.com/raydcast/socxy-go/proxy"
 	"gopkg.in/yaml.v2"
 )
 

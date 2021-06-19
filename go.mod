@@ -1,4 +1,4 @@
-module github.com/socxy/socxy-server
+module github.com/raydcast/socxy-go
 
 go 1.16
 
